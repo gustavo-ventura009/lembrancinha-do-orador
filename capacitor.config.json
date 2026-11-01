@@ -1,0 +1,9 @@
+{
+  "appId": "br.com.lembrancinha.orador",
+  "appName": "Lembrancinha do Orador",
+  "webDir": "www",
+  "android": { "allowMixedContent": true },
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_launcher_foreground" }
+  }
+}

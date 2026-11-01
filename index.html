@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14274e">
+  <title>Lembrancinha do Orador</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <header class="topo">
+    <a class="marca" href="#/painel"><span class="marca-ico">🎁</span><span>Lembrancinha do Orador</span><small id="modo-tag"></small></a>
+    <nav class="menu" aria-label="Navegação principal">
+      <a data-rota="painel" href="#/painel">Painel</a>
+      <a data-rota="historico" href="#/historico">Histórico</a>
+      <a data-rota="calendario" href="#/calendario">Calendário</a>
+      <a data-rota="grupos" href="#/grupos">Grupos</a>
+      <a data-rota="config" href="#/config">Configurações</a>
+    </nav>
+  </header>
+
+  <div id="banner-lembrete" class="banner" hidden role="alert">
+    <span>🔔</span><span class="banner-txt"></span><span class="banner-acao">Abrir sugestão</span>
+  </div>
+
+  <main id="view" class="conteudo" aria-live="polite"></main>
+
+  <div id="modais"></div>
+  <div id="toasts" aria-live="assertive"></div>
+
+  <script src="js/datas.js"></script>
+  <script src="js/grupos.js"></script>
+  <script src="js/selecao.js"></script>
+  <script src="js/armazenamento.js"></script>
+  <script src="js/whatsapp.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/historico.js"></script>
+  <script src="js/calendario.js"></script>
+  <script src="js/notificacoes.js"></script>
+  <script src="js/android.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

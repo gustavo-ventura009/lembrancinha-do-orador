@@ -1,0 +1,40 @@
+/* Tablets */
+@media (max-width: 960px) {
+  .indicadores { grid-template-columns: repeat(2, 1fr); }
+  .sug-grid { grid-template-columns: repeat(2, 1fr); }
+  .acesso { grid-template-columns: repeat(2, 1fr); }
+  .grupos-grid { grid-template-columns: repeat(2, 1fr); }
+  .filtros { grid-template-columns: 1fr 1fr; }
+  .filtros input[type=search] { grid-column: 1 / -1; }
+}
+
+/* Celulares: grupos em uma única coluna */
+@media (max-width: 640px) {
+  .topo { flex-direction: column; align-items: stretch; gap: .5rem; padding: .6rem .75rem; }
+  .menu { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .menu a { white-space: nowrap; flex: 1; text-align: center; }
+  .conteudo { padding: .8rem; }
+  .indicadores { grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .ind { padding: .7rem .75rem; } .ind strong { font-size: 1rem; }
+  .sugestao { padding: 1.1rem 1.1rem; }
+  .sug-nome { font-size: 1.55rem; }
+  .sug-grid { grid-template-columns: 1fr 1fr; }
+  .acesso { grid-template-columns: 1fr 1fr; }
+  .grupos-grid { grid-template-columns: 1fr; }
+  .filtros { grid-template-columns: 1fr; }
+  .form.linha { grid-template-columns: 1fr; }
+  .hist li { flex-direction: column; align-items: stretch; }
+  .hist-item { flex-direction: column; align-items: flex-start; }
+  .det { grid-template-columns: 1fr; gap: 0; } .det dd { margin-bottom: .5rem; }
+  .overlay { align-items: flex-end; padding: 0; }
+  .modal { width: 100%; max-height: 94vh; border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+  .modal-rodape .btn { flex: 1 1 100%; }
+  .banner { padding: .6rem .8rem; font-size: .9rem; } .banner-acao { display: none; }
+  .cal-dia { min-height: 40px; padding: .2rem; font-size: .75rem; }
+  .cal-dia.sabado { min-height: 78px; }
+  .cal-fam { font-size: .68rem; } .cal-sub { display: none; }
+  .escolha-par { grid-template-columns: 1fr; }
+  .cal-nav strong { min-width: 7rem; font-size: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
