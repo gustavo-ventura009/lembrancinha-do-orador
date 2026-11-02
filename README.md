@@ -55,11 +55,14 @@ só dizem a data e o grupo da vez, sem nomes de famílias. Se preferir, é poss�
 
 ## Regras implementadas
 
-- **Rodízio**: Elizeu → Rafael → Alvimar → Cleiber → Gracy → William → Elizeu… O **grupo da semana** de qualquer sábado (inclusive futuro)
-  é o grupo seguinte ao da entrega mais recente antes daquele sábado. Sábados passados sem registro e sábados sem reunião não avançam o rodízio. **Semanas à frente** mostram o grupo seguinte do rodízio (projeção: cada sábado em aberto antes dele avança um grupo, como se fosse confirmado em ordem).
+- **Rodízio**: Elizeu → Rafael → Alvimar → Cleiber → Gracy → William → Elizeu… A vez **só passa para o grupo seguinte quando uma família do
+  próprio grupo da vez entrega**. Se você confirmar alguém de outro grupo, a vez continua com o grupo que ficou devendo e volta para ele
+  na semana seguinte (ex.: vez do Rafael, entrou alguém do Alvimar → semana seguinte é do Rafael de novo). Um grupo que entregou fora da vez
+  e ainda não tinha chegado a sua vez no ciclo é pulado quando o rodízio chegar nele. O **grupo da semana** de qualquer sábado (inclusive futuro)
+  é calculado a partir das entregas anteriores a ele. Sábados passados sem registro e sábados sem reunião não avançam o rodízio. **Semanas à frente** mostram o grupo seguinte do rodízio (projeção: cada sábado em aberto antes dele avança um grupo, como se fosse confirmado em ordem).
   Definir ou pular o grupo da vez só em **Configurações → Rodízio** (ação administrativa, registrada); vale a partir do próximo sábado em aberto.
 - **Escolha livre**: mesmo sendo a vez de um grupo, você pode confirmar **qualquer família de qualquer grupo**. Aparece apenas um aviso
-  informando que ela é de outro grupo. O rodízio continua a partir do grupo da família escolhida.
+  informando que ela é de outro grupo. O rodízio não avança: a vez continua com o grupo que ficou devendo.
 - **Navegar entre semanas**: no painel, as setas ‹ › ao lado da data de entrega mudam o sábado exibido (status, grupo da semana, sugestão e bolinhas acompanham). “Voltar ao próximo sábado” retorna ao padrão.
 - **Escolher o presenteador**: no modal de **Sugestão de família** há dois seletores, **grupo** (Grupo Elizeu, Grupo Rafael…) e **família** do grupo escolhido. Ao trocar o grupo, a melhor família dele é pré-selecionada. No modal **Detalhes da família** (aberto ao tocar numa família) esses dois seletores não aparecem.
 - **Agendar sábados futuros**: no modal da família há o seletor **Sábado da entrega** (próximos 26 sábados). Trocar o sábado na

@@ -52,7 +52,7 @@ t('projeção pula sábado sem reunião e respeita entrega já agendada mais à 
   assert.strictEqual(S.grupoDaSemana(s, '2026-11-21').name, 'Rafael');   // 14/11 não avança
   const fam = G.familiasAtivas(s, 'g-alvimar')[0];
   S.confirmar(s, fam.id, '2026-11-21', 'x');                              // agendada: Alvimar em 21/11
-  assert.strictEqual(S.grupoDaSemana(s, '2026-11-28').name, 'Alvimar');   // segue do grupo previsto para a semana, não da família escolhida
+  assert.strictEqual(S.grupoDaSemana(s, '2026-11-28').name, 'Rafael');    // Alvimar entregou na vez do Rafael: a vez volta ao Rafael
 });
 t('nunca participou tem prioridade; depois, a mais antiga; ordem de cadastro desempata', () => {
   const s = novo();
@@ -94,7 +94,7 @@ t('confirmar exige sábado; família de outro grupo pode ser escolhida mesmo for
   const outro = G.familiasAtivas(s, 'g-rafael')[0];           // a vez é do Elizeu
   const d = S.confirmar(s, outro.id, '2026-11-07', 'x');
   assert.strictEqual(d.groupName, 'Rafael');
-  assert.strictEqual(S.grupoDaVez(s).name, 'Rafael');         // o rodízio segue o grupo previsto para a semana, não o grupo da família escolhida
+  assert.strictEqual(S.grupoDaVez(s).name, 'Elizeu');         // Rafael entregou na vez do Elizeu: a vez do Elizeu continua
 });
 t('família de outro grupo não faz o rodízio saltar semanas: preserva o grupo previsto', () => {
   const s = novo();
@@ -104,7 +104,27 @@ t('família de outro grupo não faz o rodízio saltar semanas: preserva o grupo 
   const d = S.confirmar(s, alvimar.id, sab, 'x');
   assert.strictEqual(d.groupName, 'Alvimar'); // grupo real da família escolhida permanece no histórico
   assert.strictEqual(d.rotationGroupName, 'Rafael'); // grupo que era da semana
-  assert.strictEqual(S.grupoDaSemana(s, D.addDias(sab, 7)).name, 'Alvimar'); // avança só uma posição após Rafael
+  assert.strictEqual(S.grupoDaSemana(s, D.addDias(sab, 7)).name, 'Rafael'); // Alvimar entregou na vez do Rafael: volta para o Rafael, não pula para o Cleiber
+});
+t('rodízio: entrega de outro grupo não consome a vez; grupo que já entregou fora da vez é pulado depois', () => {
+  const s = novo();
+  const fam = (g) => G.familiasAtivas(s, g)[0].id;
+  // vez do Elizeu, mas entrega alguém do Rafael -> a vez do Elizeu continua
+  S.confirmar(s, fam('g-rafael'), '2026-11-07', 'x');
+  assert.strictEqual(S.grupoDaSemana(s, '2026-11-14').name, 'Elizeu');
+  // Elizeu entrega na sua vez; o Rafael já entregou, então pula para o Alvimar
+  S.confirmar(s, fam('g-elizeu'), '2026-11-14', 'x');
+  assert.strictEqual(S.grupoDaSemana(s, '2026-11-21').name, 'Alvimar');
+  assert.strictEqual(S.grupoDaSemana(s, '2026-11-28').name, 'Cleiber');
+});
+t('rodízio: grupo anterior à vez que entrega fora de hora não atrasa o grupo da vez nem é pulado no ciclo seguinte', () => {
+  const s = novo();
+  S.definirGrupoDaVez(s, 'g-rafael', 'x');
+  S.confirmar(s, G.familiasAtivas(s, 'g-elizeu')[0].id, '2026-11-07', 'x'); // vez do Rafael, entrega Elizeu
+  assert.strictEqual(S.grupoDaSemana(s, '2026-11-14').name, 'Rafael');       // volta para o Rafael
+  S.confirmar(s, G.familiasAtivas(s, 'g-rafael')[1].id, '2026-11-14', 'x');
+  const nomes = ['2026-11-21', '2026-11-28', '2026-12-05', '2026-12-12', '2026-12-19'].map((d) => S.grupoDaSemana(s, d).name);
+  assert.deepStrictEqual(nomes, ['Alvimar', 'Cleiber', 'Gracy', 'William', 'Elizeu']); // Elizeu não é pulado no próximo ciclo
 });
 
 t('alerta de participação recente no mesmo mês', () => {
@@ -143,8 +163,8 @@ t('agendamento futuro: escolher família para um sábado distante, com grupo da 
   const gracy = G.familiasAtivas(s, 'g-gracy')[0];
   S.confirmar(s, gracy.id, '2026-11-28', 'x');                         // agenda direto o dia 28
   assert.strictEqual(S.grupoDaSemana(s, '2026-11-07').name, 'Elizeu'); // semanas anteriores continuam com a vez do Elizeu
-  assert.strictEqual(S.grupoDaSemana(s, '2026-12-05').name, 'Gracy');
-  assert.strictEqual(S.sugerir(s, '2026-12-05', HOJE).grupo.name, 'Gracy');
+  assert.strictEqual(S.grupoDaSemana(s, '2026-12-05').name, 'Cleiber'); // Gracy entregou na vez do Cleiber: a vez do Cleiber continua
+  assert.strictEqual(S.sugerir(s, '2026-12-05', HOJE).grupo.name, 'Cleiber');
   assert.strictEqual(S.entregaDoSabado(s, '2026-11-28').familyId, gracy.id);
   assert.strictEqual(S.grupoDaVez(s).name, 'Elizeu');                  // o próximo sábado livre (07/11) ainda é do Elizeu
 });

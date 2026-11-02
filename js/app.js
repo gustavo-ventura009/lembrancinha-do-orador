@@ -182,7 +182,7 @@
         <button class="btn btn-azul" data-acao="salvar-servidor">Salvar e reconectar</button></div>
 
       <div class="card"><h3>Rodízio</h3>
-        <p>Grupo da vez: <strong>${esc(G().rotulo(daVez.name))}</strong>. O rodízio só avança quando uma família é confirmada.</p>
+        <p>Grupo da vez: <strong>${esc(G().rotulo(daVez.name))}</strong>. O rodízio só avança quando uma família do grupo da vez é confirmada.</p>
         <div class="form linha"><label><span>Definir grupo da vez</span><select id="c-grupo">${state.groups.map((g) => `<option value="${g.id}"${g.id === daVez.id ? ' selected' : ''}>${esc(G().rotulo(g.name))}</option>`).join('')}</select></label></div>
         <button class="btn btn-sec" data-acao="definir-grupo">Definir</button>
         <button class="btn btn-laranja" data-acao="pular">Pular grupo da vez</button>
