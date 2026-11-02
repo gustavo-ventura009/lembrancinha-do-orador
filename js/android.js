@@ -87,6 +87,34 @@
     await ln.schedule({ notifications: [{ id: 2000000000 + Math.floor(Math.random() * 100000000), channelId: CANAL, title: 'Lembrancinha do orador', body: 'Teste: as notificações do app Android funcionam.', autoCancel: false, smallIcon: 'ic_stat_lembrancinha', schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true } }] });
   }
 
+  /** Situação real do canal e dos alarmes exatos, como o Android está aplicando (ajuda a achar por que não vibra). */
+  async function diagnostico() {
+    const ln = LN(), linhas = [];
+    try {
+      const { channels } = await ln.listChannels();
+      const c = (channels || []).find((x) => x.id === CANAL);
+      if (!c) linhas.push('Canal de lembretes: <strong>não encontrado</strong>');
+      else {
+        const imp = { 5: 'urgente', 4: 'alta', 3: 'média', 2: 'baixa', 1: 'mínima', 0: 'nenhuma' }[c.importance] || c.importance;
+        linhas.push(`Canal: importância <strong>${imp}</strong>, vibração <strong>${c.vibration ? 'ligada' : 'DESLIGADA'}</strong>, som <strong>${c.sound === '' || c.sound === null ? 'sem som' : 'ligado'}</strong>`);
+      }
+    } catch (e) { linhas.push('Canal: não foi possível ler'); }
+    try {
+      const r = await ln.checkExactNotificationSetting();
+      linhas.push(`Alarmes exatos: <strong>${r.exact_alarm === 'granted' ? 'permitidos' : 'NÃO permitidos (os lembretes podem atrasar ou perder a vibração)'}</strong>`);
+    } catch (e) {}
+    return linhas.join('<br>');
+  }
+
+  /** Abre a tela do Android onde se libera "Alarmes e lembretes" para o app. */
+  async function alarmesExatos() {
+    const ln = LN();
+    const r = await ln.checkExactNotificationSetting();
+    if (r.exact_alarm === 'granted') return 'granted';
+    await ln.changeExactNotificationSetting();
+    return 'aberto';
+  }
+
   /** Texto de situação para a tela de Configurações. */
   async function resumo() {
     const ln = LN();
@@ -94,7 +122,8 @@
     const lista = agenda(ST().state, Date.now(), D().hoje());
     const permTxt = perm === 'granted' ? 'permitidas' : 'BLOQUEADAS (ative nas configurações do Android)';
     const prox = lista.length ? `${lista.length} lembretes agendados; o próximo é ${LOD.ui.dataHora(lista[0].quando.toISOString())}.` : 'Nenhum lembrete pendente (todos os próximos sábados já têm família ou não têm reunião).';
-    return `Notificações do Android: <strong>${permTxt}</strong>. ${prox}`;
+    let diag = ''; try { diag = await diagnostico(); } catch (e) {}
+    return `Notificações do Android: <strong>${permTxt}</strong>. ${prox}` + (diag ? `<br>${diag}` : '');
   }
 
   function iniciar() {
@@ -108,6 +137,6 @@
     });
   }
 
-  LOD.android = { agenda, sincronizar, iniciar, testar, resumo, nativo };
+  LOD.android = { agenda, sincronizar, iniciar, testar, resumo, diagnostico, alarmesExatos, nativo };
   if (typeof module !== 'undefined') module.exports = LOD.android;
 })(typeof window !== 'undefined' ? window : globalThis);

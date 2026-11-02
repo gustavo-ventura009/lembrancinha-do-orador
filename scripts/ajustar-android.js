@@ -42,8 +42,10 @@ if (java) {
   let j = fs.readFileSync(java, 'utf8');
   const re = /(Notification\s+(\w+)\s*=\s*\w+\.build\(\);)/g;
   if (re.test(j) && !j.includes('FLAG_INSISTENT')) {
-    j = j.replace(re, '$1\n        $2.flags |= android.app.Notification.FLAG_INSISTENT;');
+    // além de insistente, garante que cada notificação vibre/toque sempre (nunca \"alertar só uma vez\")
+    j = j.replace(re, '$1\n        $2.flags |= android.app.Notification.FLAG_INSISTENT;\n        $2.flags &= ~android.app.Notification.FLAG_ONLY_ALERT_ONCE;');
   }
+  j = j.replace(/\.setOnlyAlertOnce\(\s*true\s*\)/g, '.setOnlyAlertOnce(false)');
   fs.writeFileSync(java, j);
   console.log(j.includes('FLAG_INSISTENT') ? 'Som insistente ativado até dispensar a notificação.' : '::warning::FLAG_INSISTENT não foi aplicado.');
 } else console.log('::warning::Plugin de notificações não encontrado; vibração contínua não aplicada.');

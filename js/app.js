@@ -205,7 +205,7 @@
         <p>Permissão do navegador: <strong>${perm === 'granted' ? 'concedida' : perm === 'denied' ? 'bloqueada' : perm === 'indisponivel' ? 'indisponível neste navegador' : 'ainda não pedida'}</strong></p>`}
         <button class="btn btn-azul" data-acao="salvar-lembretes">Salvar</button>
         ${nat ? `<button class="btn btn-sec" data-acao="teste-nativo">Testar notificação (5 s)</button>
-        <button class="btn btn-sec" data-acao="reagendar">Reagendar agora</button>` : `<button class="btn btn-sec" data-acao="permissao">Permitir notificações</button>
+        <button class="btn btn-sec" data-acao="reagendar">Reagendar agora</button> <button class="btn btn-sec" data-acao="alarmes-exatos">Liberar alarmes exatos</button>` : `<button class="btn btn-sec" data-acao="permissao">Permitir notificações</button>
         <button class="btn btn-sec" data-acao="teste-local">Testar notificação aqui</button>`}
         <button class="btn btn-sec" data-acao="teste-push"${modo === 'servidor' ? '' : ' disabled title="Requer o backend"'}>Testar push do servidor</button></div>
 
@@ -245,6 +245,7 @@
           ST().salvar(); U().toast('Lembretes salvos.');
         }
         else if (a === 'teste-nativo') { await LOD.android.testar(); U().toast('Sairá uma notificação em 5 segundos. Pode sair do app para ver.'); }
+        else if (a === 'alarmes-exatos') { const r = await LOD.android.alarmesExatos(); U().toast(r === 'granted' ? 'Alarmes exatos já estão permitidos.' : 'Ative "Permitir alarmes e lembretes" para o app e volte.'); }
         else if (a === 'reagendar') { await LOD.android.sincronizar(); const n = document.getElementById('c-nat'); if (n) n.innerHTML = await LOD.android.resumo(); U().toast('Lembretes reagendados.'); }
         else if (a === 'permissao') { const r = await LOD.notificacoes.pedirPermissao(); U().toast('Permissão: ' + r); configuracoes(cont); }
         else if (a === 'teste-local') { if (LOD.notificacoes.permissao() !== 'granted') throw new Error('Permita as notificações primeiro.'); new Notification('Lembrancinha do orador', { body: 'Teste: as notificações do navegador funcionam.' }); }
