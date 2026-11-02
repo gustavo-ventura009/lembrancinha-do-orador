@@ -27,4 +27,10 @@ t('sábado sem reunião não agenda; ids únicos; nada no passado', () => {
   assert.strictEqual(new Set(l.map((x) => x.id)).size, l.length);
   assert.ok(l.every((x) => x.quando.getTime() > agora));
 });
+t('nome do grupo só na primeira semana pendente', () => {
+  const st2 = G.estadoInicial();
+  const l = A.agenda(st2, agora, '2026-11-01');
+  assert.ok(l.filter((x) => x.sab === '2026-11-07').every((x) => x.grupo));
+  assert.ok(l.filter((x) => x.sab !== '2026-11-07').every((x) => x.grupo === null));
+});
 console.log(`\n${ok} testes passaram.`);

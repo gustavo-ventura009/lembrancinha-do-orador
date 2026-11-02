@@ -170,6 +170,7 @@
     const state = ST().state, s = state.settings, daVez = S().grupoDaVez(state);
     const modo = ST().modo;
     const perm = LOD.notificacoes.permissao();
+    const nat = !!(LOD.android && LOD.android.nativo());
     const modoTxt = modo === 'servidor' ? '🟢 Conectado ao servidor — dados sincronizados entre dispositivos e lembretes em segundo plano disponíveis.' : modo === 'servidor-sem-acesso' ? '🔴 Servidor encontrado, mas o token está incorreto.' : '🟡 Modo local — dados salvos só neste navegador; lembretes só com o site aberto.';
     cont.innerHTML = `<div class="pagina-topo"><h2>CONFIGURAÇÕES</h2></div>
       <div class="card"><h3>Armazenamento e servidor</h3><p>${modoTxt}</p>
@@ -197,11 +198,12 @@
         <p>Quarta a sábado, nos horários abaixo, enquanto o sábado alvo não tiver família confirmada. Abrir o site ou clicar numa notificação <strong>não</strong> cancela nada.</p>
         <div class="form linha"><label><span>Horas (separadas por vírgula)</span><input id="c-horas" value="${s.lembreteHoras.join(', ')}"></label>
         <label><span>Tópico ntfy (para celular com o site fechado)</span><input id="c-ntfy" value="${esc(s.ntfyTopic)}" placeholder="ex.: lembrancinha-gustavo-x7k2"></label></div>
-        <label class="check"><input type="checkbox" id="c-notif" ${s.notificacoesNavegador ? 'checked' : ''}> Notificações do navegador (precisam de permissão e do site/navegador aberto)</label>
-        <p>Permissão do navegador: <strong>${perm === 'granted' ? 'concedida' : perm === 'denied' ? 'bloqueada' : perm === 'indisponivel' ? 'indisponível neste navegador' : 'ainda não pedida'}</strong></p>
+        ${nat ? `<input type="checkbox" id="c-notif" hidden ${s.notificacoesNavegador ? 'checked' : ''}><p id="c-nat">Verificando notificações do Android…</p>` : `<label class="check"><input type="checkbox" id="c-notif" ${s.notificacoesNavegador ? 'checked' : ''}> Notificações do navegador (precisam de permissão e do site/navegador aberto)</label>
+        <p>Permissão do navegador: <strong>${perm === 'granted' ? 'concedida' : perm === 'denied' ? 'bloqueada' : perm === 'indisponivel' ? 'indisponível neste navegador' : 'ainda não pedida'}</strong></p>`}
         <button class="btn btn-azul" data-acao="salvar-lembretes">Salvar</button>
-        <button class="btn btn-sec" data-acao="permissao">Permitir notificações</button>
-        <button class="btn btn-sec" data-acao="teste-local">Testar notificação aqui</button>
+        ${nat ? `<button class="btn btn-sec" data-acao="teste-nativo">Testar notificação (5 s)</button>
+        <button class="btn btn-sec" data-acao="reagendar">Reagendar agora</button>` : `<button class="btn btn-sec" data-acao="permissao">Permitir notificações</button>
+        <button class="btn btn-sec" data-acao="teste-local">Testar notificação aqui</button>`}
         <button class="btn btn-sec" data-acao="teste-push"${modo === 'servidor' ? '' : ' disabled title="Requer o backend"'}>Testar push do servidor</button></div>
 
       <div class="card"><h3>Backup</h3>
@@ -209,6 +211,7 @@
         <button class="btn btn-azul" data-acao="exportar">Exportar backup (JSON)</button>
         <button class="btn btn-sec" data-acao="importar">Importar backup…</button>
         <input type="file" id="c-arq" accept="application/json,.json" hidden></div>`;
+    if (nat) LOD.android.resumo().then((h) => { const n = document.getElementById('c-nat'); if (n) n.innerHTML = h; }).catch(() => {});
 
     const $ = (id) => document.getElementById(id);
     $('c-arq').addEventListener('change', async (e) => {
@@ -237,6 +240,8 @@
           const pen = Number($('c-pen').value); if (pen >= 0) st.settings.penalidadeResponsavelSemanas = pen;
           ST().salvar(); U().toast('Lembretes salvos.');
         }
+        else if (a === 'teste-nativo') { await LOD.android.testar(); U().toast('Sairá uma notificação em 5 segundos. Pode sair do app para ver.'); }
+        else if (a === 'reagendar') { await LOD.android.sincronizar(); const n = document.getElementById('c-nat'); if (n) n.innerHTML = await LOD.android.resumo(); U().toast('Lembretes reagendados.'); }
         else if (a === 'permissao') { const r = await LOD.notificacoes.pedirPermissao(); U().toast('Permissão: ' + r); configuracoes(cont); }
         else if (a === 'teste-local') { if (LOD.notificacoes.permissao() !== 'granted') throw new Error('Permita as notificações primeiro.'); new Notification('Lembrancinha do orador', { body: 'Teste: as notificações do navegador funcionam.' }); }
         else if (a === 'teste-push') { const r = await fetch(ST()._url('teste'), { method: 'POST', headers: ST()._headers() }); const j = await r.json().catch(() => ({})); U().toast(r.ok ? 'Push enviado.' : (j.erro || 'Falha ao enviar.'), r.ok ? '' : 'erro'); }

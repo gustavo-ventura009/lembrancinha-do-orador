@@ -140,3 +140,8 @@ baixe `app-debug.apk` em *Artifacts*. Ou localmente (Node 20, JDK 17, Android SD
 No celular: permita instalar apps desconhecidos, instale o APK e, na primeira abertura, **permita as notificações**.
 Se o Android pedir, em Configurações do app → Bateria, deixe **Sem restrições** e permita **Alarmes e lembretes**.
 No app, os dados ficam só no aparelho (modo local); para sincronizar com o backend, informe o endereço em Configurações → Servidor.
+
+### Detalhes das notificações no app
+- Tocam com som e **vibração**; ao tocar nelas o app abre, mas elas **permanecem** até você arrastá-las para o lado.
+- O nome do grupo da vez aparece só na primeira semana pendente; nas seguintes a notificação mostra apenas a data do sábado.
+- O ícone do app é a imagem em `img/icone.png` (tamanhos Android em `icone/`).
