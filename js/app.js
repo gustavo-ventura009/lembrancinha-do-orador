@@ -173,6 +173,9 @@
     const nat = !!(LOD.android && LOD.android.nativo());
     const modoTxt = modo === 'servidor' ? '🟢 Conectado ao servidor — dados sincronizados entre dispositivos e lembretes em segundo plano disponíveis.' : modo === 'servidor-sem-acesso' ? '🔴 Servidor encontrado, mas o token está incorreto.' : '🟡 Modo local — dados salvos só neste navegador; lembretes só com o site aberto.';
     cont.innerHTML = `<div class="pagina-topo"><h2>CONFIGURAÇÕES</h2></div>
+      <div class="card"><h3>Aparência</h3>
+        <label class="outra"><span>Tema</span><select id="c-tema">${[['auto', 'Automático (segue o celular)'], ['claro', 'Claro'], ['escuro', 'Escuro']].map(([v, t]) => `<option value="${v}"${LOD.tema.preferencia() === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
+        <p class="ajuda">Vale só neste aparelho e é aplicado na hora.</p></div>
       <div class="card"><h3>Armazenamento e servidor</h3><p>${modoTxt}</p>
         <div class="form linha"><label><span>Endereço do servidor (vazio = mesmo site)</span><input id="c-back" value="${esc(localStorage.getItem('lod_backend') || '')}" placeholder="https://meu-servidor.exemplo.com"></label>
         <label><span>Token (se configurado no servidor)</span><input id="c-token" type="password" value="${esc(localStorage.getItem('lod_token') || '')}"></label></div>
@@ -214,6 +217,7 @@
     if (nat) LOD.android.resumo().then((h) => { const n = document.getElementById('c-nat'); if (n) n.innerHTML = h; }).catch(() => {});
 
     const $ = (id) => document.getElementById(id);
+    $('c-tema').addEventListener('change', (e) => { LOD.tema.definir(e.target.value); U().toast('Tema aplicado.'); });
     $('c-arq').addEventListener('change', async (e) => {
       const arq = e.target.files[0]; if (!arq) return;
       const r = ST().lerBackup(await arq.text());

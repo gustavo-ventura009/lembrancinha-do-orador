@@ -145,3 +145,6 @@ No app, os dados ficam só no aparelho (modo local); para sincronizar com o back
 - Tocam com som e **vibração contínua** (repete até você abrir a cortina de notificações ou arrastar a notificação); ao tocar nelas o app abre, mas elas **permanecem** até você arrastá-las para o lado.
 - O nome do grupo da vez aparece só na primeira semana pendente; nas seguintes a notificação mostra apenas a data do sábado.
 - O ícone do app é a foto inteira (`img/icone.png`; tamanhos Android em `icone/`).
+
+### Tema claro/escuro
+Em **Configurações → Aparência**: *Automático* (segue o tema do celular), *Claro* ou *Escuro*. A escolha vale só no aparelho e é aplicada na hora.

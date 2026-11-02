@@ -9,7 +9,11 @@
   function raiz() { return document.getElementById('modais'); }
 
   /** Abre um modal. botoes: [{texto, classe, aoClicar(fechar)}]. Retorna função fechar. */
+  let ultimo = { chave: '', t: 0, fechar: null };
   function modal({ titulo, corpo, botoes, largo }) {
+    // trava de segurança: o mesmo modal pedido duas vezes em menos de 0,6 s (toque duplo) abre uma só tela
+    const chave = titulo + '|' + (typeof corpo === 'string' ? corpo : corpo ? corpo.innerHTML : '');
+    if (ultimo.fechar && ultimo.chave === chave && Date.now() - ultimo.t < 600 && pilha.length) return ultimo.fechar;
     const ov = document.createElement('div');
     ov.className = 'overlay';
     ov.innerHTML = `<div class="modal${largo ? ' modal-largo' : ''}" role="dialog" aria-modal="true" aria-label="${esc(titulo)}">
@@ -31,6 +35,7 @@
     ov.addEventListener('click', (e) => { if (e.target === ov || e.target.hasAttribute('data-fechar')) fechar(); });
     raiz().appendChild(ov); pilha.push(ov);
     const primeiro = ov.querySelector('input,select,textarea'); if (primeiro) primeiro.focus();
+    ultimo = { chave, t: Date.now(), fechar };
     return fechar;
   }
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pilha.length) pilha[pilha.length - 1].querySelector('[data-fechar]').click(); });

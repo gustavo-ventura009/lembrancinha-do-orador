@@ -51,14 +51,15 @@
     const $ = (s) => cont.querySelector(s);
     const bind = (id, k) => $(id).addEventListener('input', (e) => { filtro[k] = e.target.value; const pos = e.target.selectionStart; render(cont); const novo = $(id); if (novo && k === 'busca') { novo.focus(); try { novo.setSelectionRange(pos, pos); } catch (x) {} } });
     bind('#f-busca', 'busca'); bind('#f-grupo', 'grupo'); bind('#f-mes', 'mes'); bind('#f-ano', 'ano');
-    cont.addEventListener('click', (e) => {
+    // onclick (e não addEventListener): cada render substitui o ouvinte em vez de acumular outro no mesmo #view
+    cont.onclick = (e) => {
       const t = e.target.closest('[data-acao],[data-entrega],[data-familia]');
       if (!t) return;
       if (t.dataset.acao === 'registrar') U().registrarAnterior();
       else if (t.dataset.acao === 'limpar') { filtro.busca = filtro.grupo = filtro.mes = filtro.ano = ''; render(cont); }
       else if (t.dataset.entrega) U().abrirEntrega(t.dataset.entrega);
       else if (t.dataset.familia) participacoes(t.dataset.familia, t.dataset.nome);
-    }, { once: false });
+    };
   }
 
   function participacoes(familyId, nome) {
