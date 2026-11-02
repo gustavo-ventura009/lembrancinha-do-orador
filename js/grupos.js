@@ -13,6 +13,19 @@
 
   const MSG_PADRAO = 'Fala Eli, Tranquilo? Estava pensando nessa semana a [NOME DA FAMÍLIA SELECIONADA] entregar a lembrancinha do orador. O que você acha?';
 
+  // Aceita horários antigos em horas inteiras (8) e novos no formato HH:MM.
+  function minutosDoHorario(valor) {
+    if (typeof valor === 'number' && Number.isInteger(valor) && valor >= 0 && valor <= 23) return valor * 60;
+    const m = String(valor).trim().match(/^(\d{1,2})(?::([0-5]\d))?$/);
+    if (!m) return NaN;
+    const h = Number(m[1]), min = Number(m[2] || 0);
+    return h <= 23 ? h * 60 + min : NaN;
+  }
+  function horarioTexto(valor) {
+    const total = minutosDoHorario(valor);
+    if (!Number.isFinite(total)) return String(valor);
+    return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+  }
   function novoId(prefixo) {
     return prefixo + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
@@ -45,7 +58,7 @@
   }
 
   const G = {
-    SEED, MSG_PADRAO, novoId, estadoInicial,
+    SEED, MSG_PADRAO, novoId, estadoInicial, minutosDoHorario, horarioTexto,
     /** Nome para exibição: "Grupo Elizeu" (não duplica o prefixo se o nome já começar com "Grupo"). */
     rotulo(nome) { nome = String(nome == null ? '' : nome).trim(); return /^grupo\b/i.test(nome) ? nome : 'Grupo ' + nome; },
     grupo(state, id) { return state.groups.find((g) => g.id === id); },

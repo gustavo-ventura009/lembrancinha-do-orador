@@ -6,6 +6,8 @@ agendamento de sábados futuros, sábados sem reunião, confirmação sempre man
 
 ## O que funciona e o que depende de quê
 
+No Android, o botão físico/gestual **Voltar** fecha primeiro a janela/modal aberta e retorna à página anterior; se não houver histórico, retorna ao Painel antes de permitir sair do aplicativo. Esse comportamento usa o plugin `@capacitor/app`.
+
 | Funcionalidade | Precisa de | Observação |
 |---|---|---|
 | Painel, sugestão automática, rodízio, confirmação, histórico, calendário, grupos, backup | Só abrir `index.html` (ou hospedar os arquivos) | Dados ficam no navegador (LocalStorage) |
@@ -45,7 +47,7 @@ em **Configurações → Servidor** informe o endereço do backend e o token.
 ## Lembretes de verdade (site fechado)
 1. Instale o app **ntfy** no celular (Android/iPhone, gratuito) e assine um tópico difícil de adivinhar, ex.: `lembrancinha-gustavo-x7k2`.
 2. No sistema, **Configurações → Lembretes**: preencha o tópico, salve e clique em **Testar push do servidor**.
-3. O servidor confere a cada 30 segundos. De **quarta a sábado**, às **08h, 11h, 14h, 17h e 20h** (horas editáveis, fuso `America/Sao_Paulo`),
+3. O servidor confere a cada 30 segundos. De **quarta a sábado**, nos horários configurados em **Configurações → Lembretes** (aceita minutos, por exemplo `08:15, 11:30, 14:45`; fuso `America/Sao_Paulo`),
    envia um push **enquanto o sábado alvo não tiver família confirmada**. Cada horário é enviado uma única vez.
 4. Abrir o site, ver ou tocar na notificação **não cancela nada**. Só **confirmar uma família** encerra os lembretes da semana;
    na semana seguinte eles voltam na quarta às 08h.
@@ -130,7 +132,7 @@ tests/             testes automatizados
 
 ## App Android (APK, Android 13+)
 O app é o mesmo site embalado com Capacitor. Dentro dele, as lembranças viram **notificações nativas do Android**, que tocam
-**com o app fechado**: de **quarta a sábado**, nas horas de Configurações → Lembretes (padrão 08h, 11h, 14h, 17h, 20h), para cada
+**com o app fechado**: de **quarta a sábado**, nas horas de Configurações → Lembretes (padrão 08:00, 11:00, 14:00, 17:00, 20:00; aceita minutos), para cada
 sábado ainda **sem família confirmada**. Só **confirmar a família** cancela as notificações daquele sábado; abrir o app ou tocar na
 notificação não cancela nada. O app agenda os próximos 6 sábados e reagenda toda vez que é aberto ou que algo muda.
 

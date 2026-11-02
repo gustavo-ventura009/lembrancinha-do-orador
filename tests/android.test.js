@@ -13,6 +13,15 @@ t('sábado sem família: 5 horários x 4 dias (qua-sáb), primeiro na quarta 04/
   assert.strictEqual(l[0].quando.toISOString(), '2026-11-04T11:00:00.000Z');
   assert.strictEqual(l[19].quando.toISOString(), '2026-11-07T23:00:00.000Z');
 });
+t('aceita horários com minutos e agenda no minuto exato', () => {
+  const st2 = G.estadoInicial();
+  st2.settings.lembreteHoras = ['08:15', '14:45'];
+  const l = A.agenda(st2, agora, '2026-11-01').filter((x) => x.sab === '2026-11-07');
+  assert.strictEqual(l.length, 8);
+  assert.strictEqual(l[0].quando.toISOString(), '2026-11-04T11:15:00.000Z');
+  assert.strictEqual(l[1].quando.toISOString(), '2026-11-04T17:45:00.000Z');
+  assert.strictEqual(new Set(l.map((x) => x.id)).size, l.length);
+});
 t('confirmar a família do sábado remove só as notificações dele', () => {
   const fam = st.families[0];
   S.confirmar(st, fam.id, '2026-11-07', new Date().toISOString());

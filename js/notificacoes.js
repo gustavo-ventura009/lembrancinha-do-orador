@@ -12,11 +12,12 @@
     const sab = D().proximoSabado(hojeIso);
     if (S().entregaDoSabado(state, sab) || S().semReuniao(state, sab)) return { ativo: false, sab };
     if (agora.weekday < 3 || agora.weekday > 6) return { ativo: false, sab };
-    const horas = [...state.settings.lembreteHoras].sort((a, b) => a - b);
-    const passadas = horas.filter((h) => h <= agora.hour);
-    if (!passadas.length) return { ativo: false, sab };
-    const hora = passadas[passadas.length - 1];
-    return { ativo: true, sab, hora, chave: `${sab}|${hojeIso}|${hora}` };
+    const atual = agora.hour * 60 + (agora.minute || 0);
+    const horarios = [...state.settings.lembreteHoras].map((h) => ({ texto: LOD.grupos.horarioTexto(h), minutos: LOD.grupos.minutosDoHorario(h) })).sort((a, b) => a.minutos - b.minutos);
+    const passados = horarios.filter((h) => h.minutos <= atual);
+    if (!passados.length) return { ativo: false, sab };
+    const horario = passados[passados.length - 1];
+    return { ativo: true, hora: horario.texto, chave: `${sab}|${hojeIso}|${horario.texto}` };
   }
 
   const N = {

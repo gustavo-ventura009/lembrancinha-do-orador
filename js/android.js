@@ -11,7 +11,7 @@
 
   /** Lista pura e testável das notificações a agendar. Retorna [{id, quando(Date), sab, grupo}]. */
   function agenda(state, agoraMs, hojeIso) {
-    const horas = [...new Set(state.settings.lembreteHoras)].sort((a, b) => a - b);
+    const horarios = [...new Set(state.settings.lembreteHoras.map((h) => G().horarioTexto(h)))].sort((a, b) => G().minutosDoHorario(a) - G().minutosDoHorario(b));
     const out = [];
     let sab = D().proximoSabado(hojeIso), primeira = true;
     for (let i = 0; i < SEMANAS; i++, sab = D().addDias(sab, 7)) {
@@ -21,10 +21,12 @@
       for (let k = 3; k >= 0; k--) {               // quarta, quinta, sexta, sábado
         const dia = D().addDias(sab, -k);
         const [y, m, d] = dia.split('-').map(Number);
-        horas.forEach((h) => {
-          const quando = new Date(Date.UTC(y, m - 1, d, h + UTC_MENOS_3, 0, 0));
+        horarios.forEach((horario) => {
+          const [h, min] = horario.split(':').map(Number);
+          const quando = new Date(Date.UTC(y, m - 1, d, h + UTC_MENOS_3, min, 0));
           if (quando.getTime() <= agoraMs) return;
-          out.push({ id: (((y % 100) * 100 + m) * 100 + d) * 100 + h, quando, sab, grupo });
+          const minutoDoDia = h * 60 + min;
+          out.push({ id: (((((y % 100) * 100 + m) * 100 + d) * 1440) + minutoDoDia), quando, sab, grupo });
         });
       }
     }
@@ -81,8 +83,31 @@
     return `Notificações do Android: <strong>${permTxt}</strong>. ${prox}`;
   }
 
+  /** Trata o botão Voltar do Android sem encerrar o app ao sair de uma página interna. */
+  function tratarVoltar(canGoBack, appApi) {
+    if (LOD.ui && LOD.ui.temModal && LOD.ui.temModal()) {
+      LOD.ui.fecharUltimo();
+      return 'modal';
+    }
+    if (canGoBack && root.history && typeof root.history.back === 'function') {
+      root.history.back();
+      return 'historico';
+    }
+    const hash = root.location && root.location.hash;
+    if (hash && hash !== '#/painel') {
+      root.location.hash = '#/painel';
+      return 'painel';
+    }
+    if (appApi && typeof appApi.exitApp === 'function') appApi.exitApp();
+    return 'sair';
+  }
+
   function iniciar() {
     if (!nativo()) return;
+    const appApi = root.Capacitor && root.Capacitor.Plugins && root.Capacitor.Plugins.App;
+    if (appApi && typeof appApi.addListener === 'function') {
+      appApi.addListener('backButton', (ev) => tratarVoltar(!!(ev && ev.canGoBack), appApi));
+    }
     sincronizar();
     ST().aoMudar(sincronizar);   // confirmar/desfazer/marcar sem reunião reagenda (e cancela) na hora
     document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizar(); });
@@ -92,6 +117,6 @@
     });
   }
 
-  LOD.android = { agenda, sincronizar, iniciar, testar, resumo, nativo };
+  LOD.android = { agenda, sincronizar, iniciar, testar, resumo, nativo, tratarVoltar };
   if (typeof module !== 'undefined') module.exports = LOD.android;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -79,11 +79,26 @@ def situacao_lembrete(estado, agora: datetime):
         return None
     if not 2 <= agora.weekday() <= 5:
         return None
-    horas = sorted(estado.get("settings", {}).get("lembreteHoras", [8, 11, 14, 17, 20]))
-    passadas = [h for h in horas if h <= agora.hour]
+    horarios = []
+    for valor in estado.get("settings", {}).get("lembreteHoras", [8, 11, 14, 17, 20]):
+        try:
+            if isinstance(valor, (int, float)):
+                minutos = int(valor) * 60
+            else:
+                partes = str(valor).strip().split(":")
+                h = int(partes[0]); m = int(partes[1]) if len(partes) > 1 else 0
+                if len(partes) > 2 or not (0 <= h <= 23 and 0 <= m <= 59):
+                    continue
+                minutos = h * 60 + m
+            if 0 <= minutos < 1440:
+                horarios.append(minutos)
+        except (ValueError, TypeError):
+            continue
+    passadas = sorted(set(m for m in horarios if m <= agora.hour * 60 + agora.minute))
     if not passadas:
         return None
-    hora = passadas[-1]
+    minuto = passadas[-1]
+    hora = f"{minuto // 60:02d}:{minuto % 60:02d}"
     grupos = estado["groups"]
     grupo = grupos[estado["rotation"].get("nextGroupIndex", 0) % len(grupos)]["name"]
     return {"sabado": sab, "hora": hora, "chave": f"{sab.isoformat()}|{agora.date().isoformat()}|{hora}", "grupo": grupo}

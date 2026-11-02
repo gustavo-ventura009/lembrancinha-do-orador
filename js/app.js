@@ -68,7 +68,7 @@
         <span class="sug-grid">
           <span><small>Grupo</small>${esc(G().rotulo(g.name))}</span>
           <span><small>Última entrega</small>${st.ultima ? D().br(st.ultima) : 'Nunca participou'}</span>
-          <span><small>Semana desde a última vez que participou</small>${st.ultima ? D().textoSemanas(st.semanas) : 'Nunca participou'}</span>
+          <span><small>Semana Desde A Última vez que participou</small>${st.ultima ? D().textoSemanas(st.semanas) : 'Nunca participou'}</span>
         </span>
         <span class="sug-dica">Toque para ver detalhes, verificar ou confirmar</span></button>`;
     }
@@ -198,7 +198,7 @@
 
       <div class="card"><h3>Lembretes</h3>
         <p>Quarta a sábado, nos horários abaixo, enquanto o sábado alvo não tiver família confirmada. Abrir o site ou clicar numa notificação <strong>não</strong> cancela nada.</p>
-        <div class="form linha"><label><span>Horas (separadas por vírgula)</span><input id="c-horas" value="${s.lembreteHoras.join(', ')}"></label>
+        <div class="form linha"><label><span>Horários (separados por vírgula)</span><input id="c-horas" inputmode="text" placeholder="08:00, 11:30, 14:45" value="${s.lembreteHoras.map((h) => G().horarioTexto(h)).join(', ')}"></label>
         <label><span>Tópico ntfy (para celular com o site fechado)</span><input id="c-ntfy" value="${esc(s.ntfyTopic)}" placeholder="ex.: lembrancinha-gustavo-x7k2"></label></div>
         ${nat ? `<input type="checkbox" id="c-notif" hidden ${s.notificacoesNavegador ? 'checked' : ''}><p id="c-nat">Verificando notificações do Android…</p>` : `<label class="check"><input type="checkbox" id="c-notif" ${s.notificacoesNavegador ? 'checked' : ''}> Notificações do navegador (precisam de permissão e do site/navegador aberto)</label>
         <p>Permissão do navegador: <strong>${perm === 'granted' ? 'concedida' : perm === 'denied' ? 'bloqueada' : perm === 'indisponivel' ? 'indisponível neste navegador' : 'ainda não pedida'}</strong></p>`}
@@ -237,9 +237,9 @@
         else if (a === 'salvar-zap') { st.settings.whatsappNumber = $('c-zap').value.replace(/\D/g, ''); st.settings.messageTemplate = $('c-msg').value.trim() || G().MSG_PADRAO; ST().salvar(); U().toast('WhatsApp salvo.'); }
         else if (a === 'zap-padrao') { st.settings.messageTemplate = G().MSG_PADRAO; st.settings.whatsappNumber = '5511962662443'; ST().salvar(); }
         else if (a === 'salvar-lembretes') {
-          const horas = [...new Set($('c-horas').value.split(/[,;\s]+/).filter(Boolean).map(Number))];
-          if (!horas.length || horas.some((h) => !Number.isInteger(h) || h < 0 || h > 23)) throw new Error('Informe horas entre 0 e 23, separadas por vírgula.');
-          st.settings.lembreteHoras = horas.sort((x, y) => x - y); st.settings.ntfyTopic = $('c-ntfy').value.trim(); st.settings.notificacoesNavegador = $('c-notif').checked;
+          const horas = [...new Set($('c-horas').value.split(/[,;]+/).map((h) => h.trim()).filter(Boolean).map((h) => G().horarioTexto(h)))];
+          if (!horas.length || horas.some((h) => !Number.isFinite(G().minutosDoHorario(h)))) throw new Error('Informe horários válidos no formato HH:MM (ex.: 08:00, 11:30, 14:45).');
+          st.settings.lembreteHoras = horas.sort((x, y) => G().minutosDoHorario(x) - G().minutosDoHorario(y)); st.settings.ntfyTopic = $('c-ntfy').value.trim(); st.settings.notificacoesNavegador = $('c-notif').checked;
           const pen = Number($('c-pen').value); if (pen >= 0) st.settings.penalidadeResponsavelSemanas = pen;
           ST().salvar(); U().toast('Lembretes salvos.');
         }
