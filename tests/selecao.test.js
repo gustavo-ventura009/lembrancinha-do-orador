@@ -34,11 +34,25 @@ t('rodízio: 7 semanas seguidas percorrem os 6 grupos e voltam ao primeiro', () 
   assert.deepStrictEqual(vistos, ['Elizeu', 'Rafael', 'Alvimar', 'Cleiber', 'Gracy', 'William', 'Elizeu']);
   for (let i = 1; i < s.deliveries.length; i++) assert.notStrictEqual(s.deliveries[i].groupId, s.deliveries[i - 1].groupId);
 });
-t('rodízio não avança sem confirmação, mesmo mudando a semana', () => {
+t('semana passada sem confirmação não avança o rodízio: o grupo da vez continua o mesmo', () => {
   const s = novo();
-  const a = S.sugerir(s, '2026-11-07', '2026-11-01').grupo.name;
-  const b = S.sugerir(s, '2026-11-14', '2026-11-08').grupo.name;
-  assert.strictEqual(a, b);
+  D.setNow(() => new Date('2026-11-08T15:00:00Z')); // domingo: o sábado 07/11 passou sem registro
+  try { assert.strictEqual(S.sugerir(s, '2026-11-14', '2026-11-08').grupo.name, 'Elizeu'); }
+  finally { D.setNow(() => new Date('2026-11-01T21:00:00Z')); }
+});
+t('semanas à frente mostram o grupo seguinte do rodízio (projeção), sem confirmar nada', () => {
+  const s = novo();
+  const nomes = ['2026-11-07', '2026-11-14', '2026-11-21', '2026-11-28', '2026-12-05', '2026-12-12', '2026-12-19']
+    .map((d) => S.grupoDaSemana(s, d).name);
+  assert.deepStrictEqual(nomes, ['Elizeu', 'Rafael', 'Alvimar', 'Cleiber', 'Gracy', 'William', 'Elizeu']);
+});
+t('projeção pula sábado sem reunião e respeita entrega já agendada mais à frente', () => {
+  const s = novo();
+  S.marcarSemReuniao(s, '2026-11-14');
+  assert.strictEqual(S.grupoDaSemana(s, '2026-11-21').name, 'Rafael');   // 14/11 não avança
+  const fam = G.familiasAtivas(s, 'g-alvimar')[0];
+  S.confirmar(s, fam.id, '2026-11-21', 'x');                              // agendada: Alvimar em 21/11
+  assert.strictEqual(S.grupoDaSemana(s, '2026-11-28').name, 'Cleiber');   // segue do grupo da entrega
 });
 t('nunca participou tem prioridade; depois, a mais antiga; ordem de cadastro desempata', () => {
   const s = novo();
@@ -114,7 +128,7 @@ t('registro retroativo ajusta o rodízio pela entrega mais recente', () => {
 t('agendamento futuro: escolher família para um sábado distante, com grupo da semana projetado', () => {
   const s = novo();
   assert.strictEqual(S.grupoDaSemana(s, '2026-11-07').name, 'Elizeu');
-  assert.strictEqual(S.grupoDaSemana(s, '2026-11-28').name, 'Elizeu'); // nada confirmado: ninguém avançou
+  assert.strictEqual(S.grupoDaSemana(s, '2026-11-28').name, 'Cleiber'); // projeção: 07 Elizeu, 14 Rafael, 21 Alvimar, 28 Cleiber
   const gracy = G.familiasAtivas(s, 'g-gracy')[0];
   S.confirmar(s, gracy.id, '2026-11-28', 'x');                         // agenda direto o dia 28
   assert.strictEqual(S.grupoDaSemana(s, '2026-11-07').name, 'Elizeu'); // semanas anteriores continuam com a vez do Elizeu

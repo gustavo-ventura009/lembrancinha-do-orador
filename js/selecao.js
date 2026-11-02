@@ -41,20 +41,36 @@
     return s;
   }
 
+  /** Sábado em aberto = sem família confirmada e com reunião. */
+  const aberto = (state, iso) => !entregaDoSabado(state, iso) && !semReuniao(state, iso);
+
   /**
    * Grupo da semana de um sábado qualquer (inclusive futuro).
-   * Regra: o grupo seguinte ao da entrega mais recente ANTES daquele sábado. Ajustes administrativos
+   * Regra base: o grupo seguinte ao da entrega mais recente ANTES daquele sábado. Ajustes administrativos
    * (definir/pular grupo) valem a partir do sábado em que foram feitos, até a próxima entrega.
-   * Sábados sem reunião e sábados sem família não avançam o rodízio.
+   * Sábados passados sem registro e sábados sem reunião não avançam o rodízio.
+   * Projeção: a cada sábado futuro em aberto antes do pedido, o grupo avança um (supondo que cada semana
+   * será confirmada em ordem). Assim, olhar uma semana à frente mostra o grupo seguinte, e não o da semana atual.
    */
   function grupoDaSemana(state, sabadoIso) {
     const r = state.rotation;
     let prior = null, ov = null;
     state.deliveries.forEach((d) => { if (d.saturday < sabadoIso && (!prior || d.saturday > prior.saturday)) prior = d; });
     (r.overrides || []).forEach((o) => { if (o.aPartirDe <= sabadoIso && (!ov || o.aPartirDe >= ov.aPartirDe)) ov = o; });
-    if (ov && (!prior || prior.saturday < ov.aPartirDe)) { const i = idxGrupo(state, ov.groupId); if (i >= 0) return state.groups[i]; }
-    if (prior) { const i = idxGrupo(state, prior.groupId); if (i >= 0) return grupoNum(state, i + 1); }
-    return grupoNum(state, typeof r.baseIndex === 'number' ? r.baseIndex : (r.nextGroupIndex || 0));
+    let base = null, inicio = primeiroSabadoAberto(state);
+    if (ov && (!prior || prior.saturday < ov.aPartirDe)) {
+      const i = idxGrupo(state, ov.groupId);
+      if (i >= 0) { base = i; if (ov.aPartirDe > inicio) inicio = ov.aPartirDe; }
+    }
+    if (base === null && prior) {
+      const i = idxGrupo(state, prior.groupId);
+      if (i >= 0) base = i + 1;
+    }
+    if (base === null) base = typeof r.baseIndex === 'number' ? r.baseIndex : (r.nextGroupIndex || 0);
+    if (prior && prior.saturday >= inicio) inicio = D().addDias(prior.saturday, 7);
+    let avancos = 0;
+    for (let s = inicio; s < sabadoIso; s = D().addDias(s, 7)) if (aberto(state, s)) avancos++;
+    return grupoNum(state, base + avancos);
   }
 
   /** Grupo da vez = grupo do primeiro sábado em aberto. */

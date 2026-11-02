@@ -56,7 +56,7 @@ só dizem a data e o grupo da vez, sem nomes de famílias. Se preferir, é poss�
 ## Regras implementadas
 
 - **Rodízio**: Elizeu → Rafael → Alvimar → Cleiber → Gracy → William → Elizeu… O **grupo da semana** de qualquer sábado (inclusive futuro)
-  é o grupo seguinte ao da entrega mais recente antes daquele sábado. Sábados sem família ou sem reunião não avançam o rodízio.
+  é o grupo seguinte ao da entrega mais recente antes daquele sábado. Sábados passados sem registro e sábados sem reunião não avançam o rodízio. **Semanas à frente** mostram o grupo seguinte do rodízio (projeção: cada sábado em aberto antes dele avança um grupo, como se fosse confirmado em ordem).
   Definir ou pular o grupo da vez só em **Configurações → Rodízio** (ação administrativa, registrada); vale a partir do próximo sábado em aberto.
 - **Escolha livre**: mesmo sendo a vez de um grupo, você pode confirmar **qualquer família de qualquer grupo**. Aparece apenas um aviso
   informando que ela é de outro grupo. O rodízio continua a partir do grupo da família escolhida.
@@ -142,6 +142,6 @@ Se o Android pedir, em Configurações do app → Bateria, deixe **Sem restriç�
 No app, os dados ficam só no aparelho (modo local); para sincronizar com o backend, informe o endereço em Configurações → Servidor.
 
 ### Detalhes das notificações no app
-- Tocam com som e **vibração**; ao tocar nelas o app abre, mas elas **permanecem** até você arrastá-las para o lado.
+- Tocam com som e **vibração contínua** (repete até você abrir a cortina de notificações ou arrastar a notificação); ao tocar nelas o app abre, mas elas **permanecem** até você arrastá-las para o lado.
 - O nome do grupo da vez aparece só na primeira semana pendente; nas seguintes a notificação mostra apenas a data do sábado.
-- O ícone do app é a imagem em `img/icone.png` (tamanhos Android em `icone/`).
+- O ícone do app é a foto inteira (`img/icone.png`; tamanhos Android em `icone/`).
