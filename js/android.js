@@ -4,8 +4,8 @@
 (function (root) {
   const LOD = (root.LOD = root.LOD || {});
   const D = () => LOD.datas, ST = () => LOD.store, S = () => LOD.selecao, G = () => LOD.grupos;
-  const CANAL = 'lembretes-orador-v2';   // canal novo: o Android não deixa alterar um canal já criado
-  const CANAL_ANTIGO = 'lembretes-orador';
+  const CANAL = 'lembretes-orador-v3';   // canal novo: o Android não deixa alterar um canal já criado
+  const CANAIS_ANTIGOS = ['lembretes-orador', 'lembretes-orador-v2'];
   const SEMANAS = 6;        // quantos sábados à frente ficam agendados (reagenda a cada abertura do app)
   const UTC_MENOS_3 = 3;    // America/Sao_Paulo é UTC-3 o ano todo (sem horário de verão desde 2019)
 
@@ -46,8 +46,8 @@
       let perm = await ln.checkPermissions();
       if (perm.display !== 'granted') perm = await ln.requestPermissions();   // Android 13: POST_NOTIFICATIONS
       if (perm.display !== 'granted') return;
-      try { await ln.deleteChannel({ id: CANAL_ANTIGO }); } catch (e) {}
-      try { await ln.createChannel({ id: CANAL, name: 'Lembretes da lembrancinha', description: 'Escolher quem entrega a lembrancinha do orador', importance: 5, visibility: 1, vibration: true, lights: true }); } catch (e) {}
+      for (const id of CANAIS_ANTIGOS) { try { await ln.deleteChannel({ id }); } catch (e) {} }
+      try { await ln.createChannel({ id: CANAL, name: 'Lembretes da lembrancinha (som e vibração contínuos)', description: 'Avisos persistentes até serem dispensados manualmente', importance: 5, visibility: 1, vibration: true, lights: true }); } catch (e) {}
       const pend = await ln.getPending();
       if (pend.notifications && pend.notifications.length) await ln.cancel({ notifications: pend.notifications.map((n) => ({ id: n.id })) });
       const lista = agenda(ST().state, Date.now(), D().hoje());
@@ -69,7 +69,7 @@
     let perm = await ln.checkPermissions();
     if (perm.display !== 'granted') perm = await ln.requestPermissions();
     if (perm.display !== 'granted') throw new Error('Notificações bloqueadas: ative em Configurações do Android → Apps → Lembrancinha do Orador → Notificações.');
-    try { await ln.createChannel({ id: CANAL, name: 'Lembretes da lembrancinha', description: 'Escolher quem entrega a lembrancinha do orador', importance: 5, visibility: 1, vibration: true, lights: true }); } catch (e) {}
+    try { await ln.createChannel({ id: CANAL, name: 'Lembretes da lembrancinha (som e vibração contínuos)', description: 'Avisos persistentes até serem dispensados manualmente', importance: 5, visibility: 1, vibration: true, lights: true }); } catch (e) {}
     await ln.schedule({ notifications: [{ id: 1, channelId: CANAL, title: 'Lembrancinha do orador', body: 'Teste: as notificações do app Android funcionam.', autoCancel: false, smallIcon: 'ic_stat_lembrancinha', schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true } }] });
   }
 
@@ -83,31 +83,8 @@
     return `Notificações do Android: <strong>${permTxt}</strong>. ${prox}`;
   }
 
-  /** Trata o botão Voltar do Android sem encerrar o app ao sair de uma página interna. */
-  function tratarVoltar(canGoBack, appApi) {
-    if (LOD.ui && LOD.ui.temModal && LOD.ui.temModal()) {
-      LOD.ui.fecharUltimo();
-      return 'modal';
-    }
-    if (canGoBack && root.history && typeof root.history.back === 'function') {
-      root.history.back();
-      return 'historico';
-    }
-    const hash = root.location && root.location.hash;
-    if (hash && hash !== '#/painel') {
-      root.location.hash = '#/painel';
-      return 'painel';
-    }
-    if (appApi && typeof appApi.exitApp === 'function') appApi.exitApp();
-    return 'sair';
-  }
-
   function iniciar() {
     if (!nativo()) return;
-    const appApi = root.Capacitor && root.Capacitor.Plugins && root.Capacitor.Plugins.App;
-    if (appApi && typeof appApi.addListener === 'function') {
-      appApi.addListener('backButton', (ev) => tratarVoltar(!!(ev && ev.canGoBack), appApi));
-    }
     sincronizar();
     ST().aoMudar(sincronizar);   // confirmar/desfazer/marcar sem reunião reagenda (e cancela) na hora
     document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizar(); });
@@ -117,6 +94,6 @@
     });
   }
 
-  LOD.android = { agenda, sincronizar, iniciar, testar, resumo, nativo, tratarVoltar };
+  LOD.android = { agenda, sincronizar, iniciar, testar, resumo, nativo };
   if (typeof module !== 'undefined') module.exports = LOD.android;
 })(typeof window !== 'undefined' ? window : globalThis);

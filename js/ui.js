@@ -39,9 +39,14 @@
     return fechar;
   }
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pilha.length) pilha[pilha.length - 1].querySelector('[data-fechar]').click(); });
-  function fecharUltimo() { const ov = pilha.pop(); if (ov) ov.remove(); }
-  function temModal() { return pilha.length > 0; }
   function fecharTodos() { while (pilha.length) pilha.pop().remove(); }
+  function fecharModalTopo() {
+    if (!pilha.length) return false;
+    const topo = pilha[pilha.length - 1];
+    const fechar = topo.querySelector('[data-fechar]');
+    if (fechar) fechar.click(); else { topo.remove(); pilha.pop(); }
+    return true;
+  }
 
   function dialogo({ titulo, mensagem, html, voltar, ok, classeOk, aoOk }) {
     return modal({
@@ -272,5 +277,5 @@
     });
   }
 
-  LOD.ui = { esc, modal, dialogo, toast, form, fecharUltimo, temModal, fecharTodos, bolinha, EMOJI, abrirFamilia, abrirEntrega, fluxoConfirmar, registrarAnterior, dataHora, statusEntrega };
+  LOD.ui = { esc, modal, dialogo, toast, form, fecharTodos, fecharModalTopo, bolinha, EMOJI, abrirFamilia, abrirEntrega, fluxoConfirmar, registrarAnterior, dataHora, statusEntrega };
 })(typeof window !== 'undefined' ? window : globalThis);

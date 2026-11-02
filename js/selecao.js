@@ -63,7 +63,8 @@
       if (i >= 0) { base = i; if (ov.aPartirDe > inicio) inicio = ov.aPartirDe; }
     }
     if (base === null && prior) {
-      const i = idxGrupo(state, prior.groupId);
+      const grupoDaRotacao = prior.rotationGroupId || prior.groupId;
+      const i = idxGrupo(state, grupoDaRotacao);
       if (i >= 0) base = i + 1;
     }
     if (base === null) base = typeof r.baseIndex === 'number' ? r.baseIndex : (r.nextGroupIndex || 0);
@@ -85,6 +86,15 @@
     if (!Array.isArray(r.log)) r.log = [];
     if (!Array.isArray(r.overrides)) r.overrides = [];
     if (!Array.isArray(state.semReuniao)) state.semReuniao = [];
+    // Migra entregas antigas: registros passados preservam o grupo real; agendamentos futuros
+    // recebem o grupo previsto para a semana, sem confundir com o grupo da família escolhida.
+    (state.deliveries || []).slice().sort((a, b) => a.saturday.localeCompare(b.saturday)).forEach((d) => {
+      if (!d.rotationGroupId) {
+        const previsto = d.retroativa || d.saturday < D().hoje() ? G().grupo(state, d.groupId) : grupoDaSemana(state, d.saturday);
+        d.rotationGroupId = (previsto || G().grupo(state, d.groupId)).id;
+        d.rotationGroupName = (previsto || G().grupo(state, d.groupId)).name;
+      }
+    });
     if (typeof r.baseIndex !== 'number') {
       r.baseIndex = r.nextGroupIndex || 0;
       // dado antigo: preserva um "definir/pular grupo" que ainda não tinha virado entrega
@@ -203,6 +213,8 @@
     if (semReuniao(state, sabadoIso)) throw new Error('Este sábado está marcado como sem reunião.');
     if (entregaDoSabado(state, sabadoIso)) throw new Error('Já existe uma família confirmada para este sábado.');
     const grupo = G().grupo(state, fam.groupId);
+    // A semana mantém o grupo previsto no rodízio, mesmo quando outra família é escolhida manualmente.
+    const grupoDaRotacao = opcoes.retroativa ? grupo : grupoDaSemana(state, sabadoIso);
     const d = {
       id: G().novoId('d'),
       saturday: sabadoIso,
@@ -210,6 +222,8 @@
       familyName: fam.name,
       groupId: grupo.id,
       groupName: grupo.name,
+      rotationGroupId: grupoDaRotacao.id,
+      rotationGroupName: grupoDaRotacao.name,
       confirmedAt: agoraIso,
       completed: false,
       retroativa: !!opcoes.retroativa

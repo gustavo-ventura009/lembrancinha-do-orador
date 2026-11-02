@@ -6,7 +6,7 @@ const res = path.join(raiz, 'android', 'app', 'src', 'main', 'res');
 // 1) Permissões
 const f = path.join(raiz, 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 let x = fs.readFileSync(f, 'utf8');
-for (const p of ['POST_NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM', 'RECEIVE_BOOT_COMPLETED', 'VIBRATE', 'WAKE_LOCK']) {
+for (const p of ['POST_NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM', 'RECEIVE_BOOT_COMPLETED', 'VIBRATE', 'WAKE_LOCK', 'MODIFY_AUDIO_SETTINGS']) {
   if (!x.includes(`android.permission.${p}"`)) x = x.replace('</manifest>', `    <uses-permission android:name="android.permission.${p}" />\n</manifest>`);
 }
 fs.writeFileSync(f, x);
@@ -43,10 +43,23 @@ if (java) {
   const re = /(Notification\s+(\w+)\s*=\s*\w+\.build\(\);)/g;
   if (re.test(j) && !j.includes('FLAG_INSISTENT')) {
     j = j.replace(re, '$1\n        $2.flags |= android.app.Notification.FLAG_INSISTENT;');
-    fs.writeFileSync(java, j);
-    console.log('Vibração contínua (FLAG_INSISTENT) ativada.');
-  } else if (!j.includes('FLAG_INSISTENT')) {
-    console.log('::warning::Não achei onde ligar a vibração contínua no plugin; o app usará a vibração padrão.');
   }
+  fs.writeFileSync(java, j);
+  console.log(j.includes('FLAG_INSISTENT') ? 'Som insistente ativado até dispensar a notificação.' : '::warning::FLAG_INSISTENT não foi aplicado.');
 } else console.log('::warning::Plugin de notificações não encontrado; vibração contínua não aplicada.');
+
+// 5) Canal Android 8+: vibração repetida enquanto a notificação insistente estiver ativa.
+const pluginAndroid = path.join(raiz, 'node_modules', '@capacitor', 'local-notifications', 'android');
+if (fs.existsSync(pluginAndroid)) {
+  const arquivos = [];
+  (function listar(dir) { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const c = path.join(dir, e.name); if (e.isDirectory()) listar(c); else if (e.name.endsWith('.java')) arquivos.push(c); } })(pluginAndroid);
+  for (const arq of arquivos) {
+    let src = fs.readFileSync(arq, 'utf8');
+    if (src.includes('new NotificationChannel') && !src.includes('setVibrationPattern')) {
+      src = src.replace(/(NotificationChannel\s+(\w+)\s*=\s*new NotificationChannel\([^;]+;)/, '$1\n            $2.enableVibration(true);\n            $2.setVibrationPattern(new long[]{0, 1000, 1000});');
+      fs.writeFileSync(arq, src);
+    }
+  }
+}
+
 console.log('Android ajustado (permissões, ícone e notificações).');

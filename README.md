@@ -6,8 +6,6 @@ agendamento de sábados futuros, sábados sem reunião, confirmação sempre man
 
 ## O que funciona e o que depende de quê
 
-No Android, o botão físico/gestual **Voltar** fecha primeiro a janela/modal aberta e retorna à página anterior; se não houver histórico, retorna ao Painel antes de permitir sair do aplicativo. Esse comportamento usa o plugin `@capacitor/app`.
-
 | Funcionalidade | Precisa de | Observação |
 |---|---|---|
 | Painel, sugestão automática, rodízio, confirmação, histórico, calendário, grupos, backup | Só abrir `index.html` (ou hospedar os arquivos) | Dados ficam no navegador (LocalStorage) |
@@ -150,3 +148,8 @@ No app, os dados ficam só no aparelho (modo local); para sincronizar com o back
 
 ### Tema claro/escuro
 Em **Configurações → Aparência**: *Automático* (segue o tema do celular), *Claro* ou *Escuro*. A escolha vale só no aparelho e é aplicada na hora.
+
+
+## Navegação Android e notificações
+
+O botão Voltar do Android fecha primeiro o modal aberto, depois retorna pela pilha de páginas e só encerra o app quando já está no Painel. As notificações nativas usam canal novo (`lembretes-orador-v3`), som padrão, vibração habilitada, ícone de sino e `autoCancel: false`; o script Android aplica `FLAG_INSISTENT` e padrão de vibração repetida quando a versão do plugin disponibiliza os pontos de extensão. O modo silencioso/Não Perturbe continua sujeito às políticas e autorizações do próprio Android e do fabricante.

@@ -4,6 +4,7 @@
   const D = () => LOD.datas, ST = () => LOD.store, U = () => LOD.ui, S = () => LOD.selecao, G = () => LOD.grupos;
   const esc = (s) => U().esc(s);
   const ROTAS = { painel: 'Painel', historico: 'Histórico', calendario: 'Calendário', grupos: 'Grupos', config: 'Configurações' };
+  let pilhaNavegacao = [], rotaAtual = null, voltarProgramatico = false;
 
   function rota() { const r = (location.hash || '#/painel').replace('#/', ''); return ROTAS[r] ? r : 'painel'; }
 
@@ -67,8 +68,9 @@
         <span class="sug-nome">${esc(f.name)}</span>
         <span class="sug-grid">
           <span><small>Grupo</small>${esc(G().rotulo(g.name))}</span>
+          <span><small>Responsável</small>${g.responsavel ? esc(g.responsavel) : 'Não cadastrado'}</span>
           <span><small>Última entrega</small>${st.ultima ? D().br(st.ultima) : 'Nunca participou'}</span>
-          <span><small>Semana Desde A Última vez que participou</small>${st.ultima ? D().textoSemanas(st.semanas) : 'Nunca participou'}</span>
+          <span><small>Semanas desde a última</small>${st.ultima ? D().textoSemanas(st.semanas) : 'Nunca participou'}</span>
         </span>
         <span class="sug-dica">Toque para ver detalhes, verificar ou confirmar</span></button>`;
     }
@@ -258,7 +260,22 @@
   async function iniciar() {
     await ST().iniciar();
     ST().aoMudar(render);
-    root.addEventListener('hashchange', render);
+    rotaAtual = rota();
+    root.addEventListener('hashchange', () => {
+      const nova = rota();
+      if (voltarProgramatico) voltarProgramatico = false;
+      else if (rotaAtual && nova !== rotaAtual) pilhaNavegacao.push(rotaAtual);
+      rotaAtual = nova;
+      render();
+    });
+    const AppNativo = root.Capacitor && root.Capacitor.Plugins && root.Capacitor.Plugins.App;
+    if (AppNativo && AppNativo.addListener) AppNativo.addListener('backButton', () => {
+      if (U().fecharModalTopo && U().fecharModalTopo()) return;
+      const anterior = pilhaNavegacao.pop();
+      if (anterior) { voltarProgramatico = true; location.hash = '#/' + anterior; return; }
+      if (rota() !== 'painel') { voltarProgramatico = true; location.hash = '#/painel'; return; }
+      if (AppNativo.exitApp) AppNativo.exitApp();
+    });
     document.getElementById('banner-lembrete').addEventListener('click', abrirSugestao);
     document.getElementById('modo-tag').textContent = ST().modo === 'servidor' ? 'sincronizado' : 'local';
     render();
