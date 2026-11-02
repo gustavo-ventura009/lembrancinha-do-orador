@@ -4,8 +4,8 @@
 (function (root) {
   const LOD = (root.LOD = root.LOD || {});
   const D = () => LOD.datas, ST = () => LOD.store, S = () => LOD.selecao, G = () => LOD.grupos;
-  const CANAL = 'lembretes-orador-v3';   // canal novo: o Android não deixa alterar um canal já criado
-  const CANAIS_ANTIGOS = ['lembretes-orador', 'lembretes-orador-v2'];
+  const CANAL = 'lembretes-orador-v4';   // canal novo: o Android não deixa alterar um canal já criado
+  const CANAIS_ANTIGOS = ['lembretes-orador', 'lembretes-orador-v2', 'lembretes-orador-v3'];
   const SEMANAS = 6;        // quantos sábados à frente ficam agendados (reagenda a cada abertura do app)
   const UTC_MENOS_3 = 3;    // America/Sao_Paulo é UTC-3 o ano todo (sem horário de verão desde 2019)
 
@@ -37,6 +37,19 @@
   const nativo = () => !!(root.Capacitor && root.Capacitor.isNativePlatform && root.Capacitor.isNativePlatform() && LN());
   let ocupado = false, repetir = false;
 
+  /** Remove da bandeja (e para a vibração/som insistentes) as notificações de sábados que já têm família ou não têm reunião. */
+  async function limparEntregues(ln) {
+    try {
+      if (!ln.getDeliveredNotifications || !ln.removeDeliveredNotifications) return;
+      const { notifications } = await ln.getDeliveredNotifications();
+      const resolvidas = (notifications || []).filter((n) => {
+        const sab = (n.extra && n.extra.sab) || (n.data && n.data.sab);
+        return sab && (S().entregaDoSabado(ST().state, sab) || S().semReuniao(ST().state, sab));
+      });
+      if (resolvidas.length) await ln.removeDeliveredNotifications({ notifications: resolvidas });
+    } catch (e) { console.warn('Limpeza de notificações:', e); }
+  }
+
   async function sincronizar() {
     if (!nativo()) return;
     if (ocupado) { repetir = true; return; }
@@ -48,6 +61,7 @@
       if (perm.display !== 'granted') return;
       for (const id of CANAIS_ANTIGOS) { try { await ln.deleteChannel({ id }); } catch (e) {} }
       try { await ln.createChannel({ id: CANAL, name: 'Lembretes da lembrancinha (som e vibração contínuos)', description: 'Avisos persistentes até serem dispensados manualmente', importance: 5, visibility: 1, vibration: true, lights: true }); } catch (e) {}
+      await limparEntregues(ln);
       const pend = await ln.getPending();
       if (pend.notifications && pend.notifications.length) await ln.cancel({ notifications: pend.notifications.map((n) => ({ id: n.id })) });
       const lista = agenda(ST().state, Date.now(), D().hoje());
@@ -70,7 +84,7 @@
     if (perm.display !== 'granted') perm = await ln.requestPermissions();
     if (perm.display !== 'granted') throw new Error('Notificações bloqueadas: ative em Configurações do Android → Apps → Lembrancinha do Orador → Notificações.');
     try { await ln.createChannel({ id: CANAL, name: 'Lembretes da lembrancinha (som e vibração contínuos)', description: 'Avisos persistentes até serem dispensados manualmente', importance: 5, visibility: 1, vibration: true, lights: true }); } catch (e) {}
-    await ln.schedule({ notifications: [{ id: 1, channelId: CANAL, title: 'Lembrancinha do orador', body: 'Teste: as notificações do app Android funcionam.', autoCancel: false, smallIcon: 'ic_stat_lembrancinha', schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true } }] });
+    await ln.schedule({ notifications: [{ id: 2000000000 + Math.floor(Math.random() * 100000000), channelId: CANAL, title: 'Lembrancinha do orador', body: 'Teste: as notificações do app Android funcionam.', autoCancel: false, smallIcon: 'ic_stat_lembrancinha', schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true } }] });
   }
 
   /** Texto de situação para a tela de Configurações. */

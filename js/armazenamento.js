@@ -82,11 +82,21 @@
     },
     aoMudar(fn) { store.ouvintes.push(fn); },
 
-    exportar() {
-      const blob = new Blob([JSON.stringify(store.state, null, 2)], { type: 'application/json' });
+    /** No navegador baixa o arquivo; no app Android (WebView não baixa Blob) grava no cache e abre o menu de compartilhar. */
+    async exportar() {
+      const nome = `lembrancinha-backup-${LOD.datas.hoje()}.json`;
+      const texto = JSON.stringify(store.state, null, 2);
+      const cap = root.Capacitor, plugins = (cap && cap.Plugins) || {};
+      if (cap && cap.isNativePlatform && cap.isNativePlatform()) {
+        if (!plugins.Filesystem || !plugins.Share) throw new Error('Exportação indisponível nesta versão do app. Instale o APK mais recente.');
+        const r = await plugins.Filesystem.writeFile({ path: nome, data: texto, directory: 'CACHE', encoding: 'utf8' });
+        await plugins.Share.share({ title: 'Backup da Lembrancinha do Orador', text: nome, url: r.uri, dialogTitle: 'Salvar ou enviar o backup' });
+        return;
+      }
+      const blob = new Blob([texto], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `lembrancinha-backup-${LOD.datas.hoje()}.json`;
+      a.download = nome;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     },

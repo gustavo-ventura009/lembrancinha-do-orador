@@ -249,7 +249,7 @@
         else if (a === 'permissao') { const r = await LOD.notificacoes.pedirPermissao(); U().toast('Permissão: ' + r); configuracoes(cont); }
         else if (a === 'teste-local') { if (LOD.notificacoes.permissao() !== 'granted') throw new Error('Permita as notificações primeiro.'); new Notification('Lembrancinha do orador', { body: 'Teste: as notificações do navegador funcionam.' }); }
         else if (a === 'teste-push') { const r = await fetch(ST()._url('teste'), { method: 'POST', headers: ST()._headers() }); const j = await r.json().catch(() => ({})); U().toast(r.ok ? 'Push enviado.' : (j.erro || 'Falha ao enviar.'), r.ok ? '' : 'erro'); }
-        else if (a === 'exportar') ST().exportar();
+        else if (a === 'exportar') await ST().exportar();
         else if (a === 'importar') $('c-arq').click();
         if (a === 'salvar-zap' || a === 'zap-padrao' || a === 'definir-grupo') render();
       } catch (err) { U().toast(err.message, 'erro'); }
