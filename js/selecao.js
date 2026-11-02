@@ -88,11 +88,13 @@
     if (!Array.isArray(state.semReuniao)) state.semReuniao = [];
     // Migra entregas antigas: registros passados preservam o grupo real; agendamentos futuros
     // recebem o grupo previsto para a semana, sem confundir com o grupo da família escolhida.
+    // Reconstrói registros antigos em ordem cronológica usando o grupo previsto para a semana,
+    // nunca o grupo da família escolhida. Assim uma escolha manual fora do grupo não desvia o rodízio.
     (state.deliveries || []).slice().sort((a, b) => a.saturday.localeCompare(b.saturday)).forEach((d) => {
       if (!d.rotationGroupId) {
-        const previsto = d.retroativa || d.saturday < D().hoje() ? G().grupo(state, d.groupId) : grupoDaSemana(state, d.saturday);
-        d.rotationGroupId = (previsto || G().grupo(state, d.groupId)).id;
-        d.rotationGroupName = (previsto || G().grupo(state, d.groupId)).name;
+        const previsto = grupoDaSemana(state, d.saturday) || G().grupo(state, d.groupId);
+        d.rotationGroupId = previsto.id;
+        d.rotationGroupName = previsto.name;
       }
     });
     if (typeof r.baseIndex !== 'number') {

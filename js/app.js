@@ -68,9 +68,8 @@
         <span class="sug-nome">${esc(f.name)}</span>
         <span class="sug-grid">
           <span><small>Grupo</small>${esc(G().rotulo(g.name))}</span>
-          <span><small>Responsável</small>${g.responsavel ? esc(g.responsavel) : 'Não cadastrado'}</span>
           <span><small>Última entrega</small>${st.ultima ? D().br(st.ultima) : 'Nunca participou'}</span>
-          <span><small>Semanas desde a última</small>${st.ultima ? D().textoSemanas(st.semanas) : 'Nunca participou'}</span>
+          <span><small>Semana Desde A Última vez que participou</small>${st.ultima ? D().textoSemanas(st.semanas) : 'Nunca participou'}</span>
         </span>
         <span class="sug-dica">Toque para ver detalhes, verificar ou confirmar</span></button>`;
     }
